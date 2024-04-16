@@ -18,12 +18,12 @@ from flask import (Flask, render_template, g)
 from datetime import datetime
 from os import getcwd
 
+if not getcwd().endswith('src'):
+    raise OSError("Please cd to src/")
+
 import server.database as db
 
 app = Flask(__name__)
-
-if not getcwd().endswith('src'):
-    raise OSError("Please cd to src/")
 
 
 @app.route('/')
@@ -38,8 +38,6 @@ def words():
     lists = db.lists()
 
     list_id = index.search('3.2')[0]
-
-    print(list_id)
     return lists.get(list_id)
 
 

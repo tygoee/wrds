@@ -49,13 +49,13 @@ class index:
 
     def add(self, index: Index, list_id: int) -> None:
         if not table_exists(self.cursor, 'lists'):
-            self.cursor.execute("""
+            self.cursor.execute(' '.join("""
                 CREATE TABLE lists (
                     id INT PRIMARY KEY,
                     name TEXT,
                     owner INT
                 )
-            """)
+            """.split()))
 
         self.cursor.execute(
             f"INSERT INTO lists (id, name, owner) VALUES (?, ?, ?)",
@@ -96,13 +96,13 @@ class lists:
             if not table_exists(self.cursor, list_id):
                 break
 
-        self.cursor.execute(f"""
+        self.cursor.execute(' '.join(f"""
             CREATE TABLE '{list_id}' (
                 id UNSIGNED SMALLINT PRIMARY KEY,
                 lang1 TEXT,
                 lang2 TEXT
             )
-        """)
+        """.split()))
 
         for word_id, (lang1, lang2) in enumerate(data.items(), 1):
             self.cursor.execute(
