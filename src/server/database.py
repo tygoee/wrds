@@ -20,7 +20,10 @@ from os import path
 from json import load
 from typing import TypedDict
 
-from constants import *
+try:
+    from constants import DATA_DIR, INDEX_DB, LISTS_DB
+except ImportError:
+    from .constants import DATA_DIR, INDEX_DB, LISTS_DB
 
 
 class Index(TypedDict):
