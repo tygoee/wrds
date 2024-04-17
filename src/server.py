@@ -22,8 +22,10 @@ if not getcwd().endswith('src'):
     raise OSError("Please cd to src/")
 
 import server.database as db
+from server.api import api
 
 app = Flask(__name__)
+app.register_blueprint(api)
 
 
 @app.route('/')

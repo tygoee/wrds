@@ -26,9 +26,20 @@ except ImportError:
     from .constants import DATA_DIR, INDEX_DB, LISTS_DB
 
 
-class Index(TypedDict):
+class MetaIndex(TypedDict):
     name: str
     owner: int
+    subject: int
+    lang1: str
+    lang2: str
+
+
+class Index(MetaIndex):
+    id: int
+    length: int
+
+
+IndexT = tuple[int, int, str, int, int, str, str]
 
 
 def table_exists(cursor: Cursor, table: int | str) -> bool:
@@ -50,19 +61,24 @@ class index:
         self.connection = connect(fp)
         self.cursor = self.connection.cursor()
 
-    def add(self, index: Index, list_id: int) -> None:
+    def add(self, index: MetaIndex, list_id: int, length: int) -> None:
         if not table_exists(self.cursor, 'lists'):
             self.cursor.execute(' '.join("""
                 CREATE TABLE lists (
-                    id INT PRIMARY KEY,
+                    id UNSIGNED INT PRIMARY KEY,
+                    length UNSIGNED SMALLINT,
                     name TEXT,
-                    owner INT
+                    owner UNSIGNED INT,
+                    subject UNSIGNED TINYINT,
+                    lang1 TEXT,
+                    lang2 TEXT
                 )
             """.split()))
 
         self.cursor.execute(
-            f"INSERT INTO lists (id, name, owner) VALUES (?, ?, ?)",
-            (list_id, index['name'], index['owner'])
+            f"INSERT INTO lists VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (list_id, length, index['name'], index['owner'],
+             index['subject'], index['lang1'], index['lang2'])
         )
 
         self.connection.commit()
@@ -71,12 +87,20 @@ class index:
         validate_list_id(list_id)
 
         self.cursor.execute(
-            f"SELECT name, owner FROM lists WHERE id = ?",
+            f"SELECT * FROM lists WHERE id = ?",
             (list_id,)
         )
 
-        fetched: tuple[str, int] = self.cursor.fetchone()
-        return {'name': fetched[0], 'owner': fetched[1]}
+        fetched: IndexT = self.cursor.fetchone()
+        return {
+            'id': fetched[0],
+            'length': fetched[1],
+            'name': fetched[2],
+            'owner': fetched[3],
+            'subject': fetched[4],
+            'lang1': fetched[5],
+            'lang2': fetched[6]
+        }
 
     def search(self, name: str) -> list[int]:
         self.cursor.execute(
@@ -133,4 +157,12 @@ if __name__ == "__main__":
             data: dict[str, str] = load(fp)
 
             list_id = lists().add(data)
-            index().add({'name': wordlist, 'owner': 19823732}, list_id)
+            index().add({
+                'name': wordlist,
+                'owner': 19823732,  # random
+                'subject': 1,
+                'lang1': 'en',
+                'lang2': 'nl'
+            },
+                list_id, len(data)
+            )
