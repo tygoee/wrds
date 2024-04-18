@@ -26,10 +26,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   <body>
     <form id="question-form">
       <span id="question"></span>
-      <input type="text" id="question-input" autofocus autocomplete="off" />
+      <input type="text" id="question-input" autocomplete="off" autofocus />
       <button type="submit">Check</button>
       <span id="correct"></span>
     </form>
-    <script src="/static/scripts/main.js?t={{ g.time }}"></script>
+
+    <script>
+      const list_id = "{{list_id}}";
+    </script>
+    <script src="/static/scripts/lists.js"></script>
   </body>
 </html>

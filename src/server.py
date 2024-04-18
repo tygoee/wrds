@@ -14,34 +14,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import (Flask, render_template, g)
-from datetime import datetime
+from flask import (Flask, render_template)
 from os import getcwd
 
 if not getcwd().endswith('src'):
     raise OSError("Please cd to src/")
 
-import server.database as db
 from server.api import api
 
 app = Flask(__name__)
-app.register_blueprint(api)
+
+# For debugging purposes: doesn't save cache
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
+# Register the api
+app.register_blueprint(api, url_prefix='/api')
 
 
-@app.route('/')
-def home():
-    g.time = int(datetime.now().timestamp())
-    return render_template('main.html')
-
-
-@app.route('/words')
-def words():
-    index = db.index()
-    lists = db.lists()
-
-    list_id = index.search('3.2')[0]
-    return lists.get(list_id)
+@app.route('/lists/<int:list_id>/test')
+def home(list_id: int):
+    # Return the word test page
+    return render_template('test.html', list_id=list_id)
 
 
 if __name__ == "__main__":
+    # Debug as it is in development
     app.run(debug=True)

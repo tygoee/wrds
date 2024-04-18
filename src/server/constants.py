@@ -17,5 +17,7 @@
 from os import path as _path, pardir as _pardir
 
 DATA_DIR = _path.join(_pardir, 'data')
-INDEX_DB = _path.join(DATA_DIR, 'lists', 'index.sqlite')
-LISTS_DB = _path.join(DATA_DIR, 'lists', 'lists.sqlite')
+DATA_PRIVATE = _path.join(DATA_DIR, 'private')
+DATA_PUBLIC = _path.join(DATA_DIR, 'public')
+INDEX_DB = _path.join(DATA_PRIVATE, 'index.sqlite')
+LISTS_DB = _path.join(DATA_PRIVATE, 'lists.sqlite')

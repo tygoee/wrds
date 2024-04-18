@@ -16,14 +16,17 @@
 
 from sqlite3 import connect, Cursor
 from random import randint
-from os import path
+from os import path, getcwd
 from json import load
 from typing import TypedDict
 
 try:
-    from constants import DATA_DIR, INDEX_DB, LISTS_DB
+    from constants import DATA_PUBLIC, INDEX_DB, LISTS_DB
 except ImportError:
-    from .constants import DATA_DIR, INDEX_DB, LISTS_DB
+    from .constants import DATA_PUBLIC, INDEX_DB, LISTS_DB
+
+if not getcwd().endswith('src'):
+    raise OSError("Please cd to src/")
 
 
 class MetaIndex(TypedDict):
@@ -153,7 +156,10 @@ class lists:
 if __name__ == "__main__":
     # Import json sample data in form {"lang1": "lang2"}
     for wordlist in ('3.2', '3.3', '3.4'):
-        with open(path.join(DATA_DIR, f'{wordlist}.json'), 'r', encoding='utf-8') as fp:
+        with open(
+            path.join(DATA_PUBLIC, 'sample', f'{wordlist}.json'),
+            'r', encoding='utf-8'
+        ) as fp:
             data: dict[str, str] = load(fp)
 
             list_id = lists().add(data)
