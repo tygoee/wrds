@@ -30,6 +30,7 @@ if not getcwd().endswith('src'):
 
 
 class MetaIndex(TypedDict):
+    "Information about the index"
     name: str
     owner: int
     subject: int
@@ -38,6 +39,7 @@ class MetaIndex(TypedDict):
 
 
 class Index(MetaIndex):
+    "A database index"
     id: int
     length: int
 
@@ -46,6 +48,13 @@ IndexT = tuple[int, int, str, int, int, str, str]
 
 
 def table_exists(cursor: Cursor, table: int | str) -> bool:
+    """
+    Check if a table exists
+
+    :param cursor: The cursor to check the table with
+    :param table: The table to check
+    """
+
     cursor.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
         (table,)
@@ -55,16 +64,38 @@ def table_exists(cursor: Cursor, table: int | str) -> bool:
 
 
 def validate_list_id(list_id: int) -> None:
+    """
+    Validate a list id to check if it's an integer of 8 digits
+
+    :param list_id: The list id to check
+    """
+
     if not type(list_id) is int or not len(str(list_id)) == 8:
         raise TypeError("list_id should be an int of 8 digits")
 
 
 class index:
     def __init__(self, fp: str = INDEX_DB) -> None:
+        """
+        Create a connection with the index database
+
+        :param fp: An alternative filepoint
+        """
+
+        # Initialize the connection and the cursor
         self.connection = connect(fp)
         self.cursor = self.connection.cursor()
 
     def add(self, index: MetaIndex, list_id: int, length: int) -> None:
+        """
+        Add a record into the index database
+
+        :param index: The information about the index to add
+        :param list_id: The list_id of the index
+        :param length: The length of the word list
+        """
+
+        # Add the table if it doesn't exist
         if not table_exists(self.cursor, 'lists'):
             self.cursor.execute(' '.join("""
                 CREATE TABLE lists (
@@ -78,22 +109,33 @@ class index:
                 )
             """.split()))
 
+        # Insert the record into the table
         self.cursor.execute(
             f"INSERT INTO lists VALUES (?, ?, ?, ?, ?, ?, ?)",
             (list_id, length, index['name'], index['owner'],
              index['subject'], index['lang1'], index['lang2'])
         )
 
+        # Commit the changes
         self.connection.commit()
 
     def get(self, list_id: int) -> Index:
+        """
+        Get a record from the index database using the list id
+
+        :param list_id: The list id to fetch
+        """
+
+        # Validate if the list id is in the correct format
         validate_list_id(list_id)
 
+        # Select the list to fetch
         self.cursor.execute(
             f"SELECT * FROM lists WHERE id = ?",
             (list_id,)
         )
 
+        # Fetch the index and return it
         fetched: IndexT = self.cursor.fetchone()
         return {
             'id': fetched[0],
@@ -106,26 +148,50 @@ class index:
         }
 
     def search(self, name: str) -> list[int]:
+        """
+        Search records in the index database by name
+
+        :param name: The name to search
+        """
+
+        # Search the database for matching names
+        # TODO: Also return non-exact matches
         self.cursor.execute(
             f"SELECT id FROM lists WHERE name = ?",
             (name,)
         )
 
+        # Return all possible matches
         return [list_id[0] for list_id in self.cursor.fetchall()]
 
 
 class lists:
     def __init__(self, fp: str = LISTS_DB) -> None:
+        """
+        Create a connection with the lists database
+
+        :param fp: An alternative filepoint
+        """
+
         self.connection = connect(fp)
         self.cursor = self.connection.cursor()
 
     def add(self, data: dict[str, str]) -> int:
+        """
+        Add a word list into the lists database
+
+        :param data: The words to insert
+        """
+
+        # Generate an 8-digit number
         while True:
             list_id = randint(10000000, 99999999)
 
+            # Repeat if the table already exists
             if not table_exists(self.cursor, list_id):
                 break
 
+        # Create a table for the words
         self.cursor.execute(' '.join(f"""
             CREATE TABLE '{list_id}' (
                 id UNSIGNED SMALLINT PRIMARY KEY,
@@ -134,19 +200,29 @@ class lists:
             )
         """.split()))
 
+        # Insert all words into the table
         for word_id, (lang1, lang2) in enumerate(data.items(), 1):
             self.cursor.execute(
                 f"INSERT INTO '{list_id}' (id, lang1, lang2) VALUES (?, ?, ?)",
                 (word_id, lang1, lang2)
             )
 
+        # Commit the changes
         self.connection.commit()
 
         return list_id
 
     def get(self, list_id: int) -> dict[str, str]:
+        """
+        Get a word list from the lists database
+
+        :param list_id: The list id to fetch
+        """
+
+        # Validate if the list id is in the correct format
         validate_list_id(list_id)
 
+        # Fetch all words and return them
         self.cursor.execute(f"SELECT lang1, lang2 FROM '{list_id}'")
         fetched: list[tuple[str, str]] = self.cursor.fetchall()
 

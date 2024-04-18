@@ -26,7 +26,7 @@ function shuffle(words) {
   // The Fisher-Yates shuffle modified for an object
   let keys = Object.keys(words);
   let idx = keys.length;
-  let temp, random;
+  let random;
 
   // While there are still elements
   while (idx) {
@@ -34,9 +34,7 @@ function shuffle(words) {
     random = Math.floor(Math.random() * idx--);
 
     // And swap it with the current one
-    temp = keys[idx];
-    keys[idx] = keys[random];
-    keys[random] = temp;
+    [keys[idx], keys[random]] = [keys[random], keys[idx]];
   }
 
   // Transform the array into an object
@@ -54,7 +52,7 @@ function* wordsTest(words) {
   words = shuffle(words);
 
   // Yield the next word
-  for (let word in words) {
+  for (const word in words) {
     yield word;
   }
 }
