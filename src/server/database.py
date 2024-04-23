@@ -111,7 +111,7 @@ class index:
 
         # Insert the record into the table
         self.cursor.execute(
-            f"INSERT INTO lists VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO lists VALUES (?, ?, ?, ?, ?, ?, ?)",
             (list_id, length, index['name'], index['owner'],
              index['subject'], index['lang1'], index['lang2'])
         )
@@ -131,7 +131,7 @@ class index:
 
         # Select the list to fetch
         self.cursor.execute(
-            f"SELECT * FROM lists WHERE id = ?",
+            "SELECT * FROM lists WHERE id = ?",
             (list_id,)
         )
 
@@ -157,7 +157,7 @@ class index:
         # Search the database for matching names
         # TODO: Also return non-exact matches
         self.cursor.execute(
-            f"SELECT id FROM lists WHERE name = ?",
+            "SELECT id FROM lists WHERE name = ?",
             (name,)
         )
 
