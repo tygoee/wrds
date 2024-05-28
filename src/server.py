@@ -32,9 +32,15 @@ app.register_blueprint(api, url_prefix='/api')
 
 
 @app.route('/lists/<int:list_id>/test')
-def home(list_id: int):
-    # Return the word test page
+def list_test(list_id: int):
+    """Return the word testing page"""
     return render_template('test.html', list_id=list_id)
+
+
+@app.route('/lists')
+def lists():
+    """Return all lists"""
+    return render_template('lists.html')
 
 
 if __name__ == "__main__":

@@ -16,99 +16,33 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-let question = document.getElementById("question");
-let input = document.getElementById("question-input");
-let form = document.getElementById("question-form");
-let correct = document.getElementById("correct");
+/** @param {object} list */
+async function makeListItem(list) {
+  const a = document.createElement("a");
+  console.log(list);
+  a.href = `/lists/${list.id}/test`;
+  a.textContent = list.name;
 
-/** @param {[string, string]} words */
-function shuffle(words) {
-  // The Fisher-Yates shuffle modified for an object
-  let keys = Object.keys(words);
-  let idx = keys.length;
-  let random;
+  // Create an li with the href
+  const li = document.createElement("li");
+  li.appendChild(a);
 
-  // While there are still elements
-  while (idx) {
-    // Pick a random one
-    random = Math.floor(Math.random() * idx--);
-
-    // And swap it with the current one
-    [keys[idx], keys[random]] = [keys[random], keys[idx]];
-  }
-
-  // Transform the array into an object
-  let shuffled = {};
-  keys.forEach((key) => {
-    shuffled[key] = words[key];
-  });
-
-  return shuffled;
+  // Add the li to the list
+  return li;
 }
 
-/** @param {[string, string]} words */
-function* wordsTest(words) {
-  // Base generator for a words test
-  words = shuffle(words);
+/** @param {int[]} lists */
+async function displayList(lists) {
+  const ul = document.getElementById("lists");
+  for (let list of lists) {
+    const response = await fetch(`/api/lists/${list}/meta`);
+    const listJson = await response.json();
 
-  // Yield the next word
-  for (const word in words) {
-    yield word;
+    ul.appendChild(await makeListItem(listJson));
   }
 }
 
-/** @param {string} word */
-async function checkWord(word) {
-  // TODO: Some more complex logic for non-exact matching
-  // like disregarding brackets, allowing one side of slashes
-  return input.value == word ? "right" : `wrong, it was ${word}`;
-}
-
-/** @param {IteratorResult<string, void>} result */
-async function nextWord(result) {
-  // Clear all fields
-  correct.innerHTML = "";
-  input.value = "";
-
-  // Set the next question
-  if (!result.done) {
-    question.innerHTML = result.value;
-    return result.value;
-  }
-}
-
-/** @param {[string, string]} words */
-async function setupTest(words) {
-  let timeout = null;
-
-  // Create the iterator and the first word
-  let iterator = wordsTest(words);
-  let word = await nextWord(iterator.next());
-
-  form.addEventListener("submit", async function (event) {
-    // Prevent the default submit action (GET request)
-    event.preventDefault();
-
-    // Check if the input is right and display that
-    correct.innerHTML = await checkWord(words[word]);
-
-    // Allow cancelling any timeout with another submit
-    if (timeout !== null) {
-      clearTimeout(timeout);
-      word = await nextWord(iterator.next());
-      timeout = null;
-      return;
-    }
-
-    // Otherwise, set a timeout
-    timeout = setTimeout(async () => {
-      word = await nextWord(iterator.next());
-      timeout = null;
-    }, 1500);
-  });
-}
-
-// Fetch the word list
-fetch(`/api/lists/${list_id}/words`)
+// Fetch the lists
+fetch(`/api/lists`)
   .then((response) => response.json())
-  .then((words) => setupTest(words));
+  .then((lists) => displayList(lists));

@@ -164,6 +164,11 @@ class index:
         # Return all possible matches
         return [list_id[0] for list_id in self.cursor.fetchall()]
 
+    def list(self) -> list[int]:
+        self.cursor.execute("SELECT id FROM lists")
+
+        return [row[0] for row in self.cursor.fetchall()]
+
 
 class lists:
     def __init__(self, fp: str = LISTS_DB) -> None:

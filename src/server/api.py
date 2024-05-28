@@ -26,3 +26,19 @@ def get_list(list_id: int):
     lists = db.lists()
 
     return lists.get(list_id)
+
+
+@api.route('/lists/<int:list_id>/meta')
+def get_meta(list_id: int):
+    """Returns metadata about a list"""
+    index = db.index()
+
+    return index.get(list_id)
+
+
+@api.route('/lists')
+def get_lists():
+    """Return all lists"""
+    index = db.index()
+
+    return index.list()
